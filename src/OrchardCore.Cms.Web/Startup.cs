@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -17,7 +18,8 @@ namespace OrchardCore.Cms.Web
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
                 .AddJsonFile("logging.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"logging.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
-                .AddEnvironmentVariables();
+                .AddEnvironmentVariables()
+                ;
 
             Configuration = builder.Build();
         }
@@ -27,6 +29,12 @@ namespace OrchardCore.Cms.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddOrchardCms();
+
+            services.Configure<IdentityOptions>(options =>
+            {
+                Configuration.GetSection("IdentityOptions").Bind(options);
+                options.Password.RequiredLength = 2;
+            });
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
@@ -44,7 +52,7 @@ namespace OrchardCore.Cms.Web
                 loggerFactory.AddConsole(Configuration);
                 loggerFactory.AddDebug();
             }
-
+            
             app.UseModules();
         }
     }
